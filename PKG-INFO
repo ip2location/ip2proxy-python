@@ -1,0 +1,10 @@
+Metadata-Version: 1.0
+Name: IP2Proxy
+Version: 1.0.0
+Summary: Python API for IP2Proxy database
+Home-page: http://www.ip2location.com
+Author: IP2Location
+Author-email: support@ip2location.com
+License: GPL
+Description: This is a IP2Proxy Python library that lookup IP address to detect VPN servers, open proxies, web proxies, Tor exit nodes and data center ranges.
+Platform: Mac OS, Linux, Windows
