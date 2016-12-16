@@ -34,7 +34,7 @@ if not hasattr(socket, 'inet_pton'):
         return out_addr_p.raw
     socket.inet_pton = inet_pton
 
-_VERSION = '1.0.0'
+_VERSION = '1.0.1'
 _FIELD_NOT_SUPPORTED = 'NOT SUPPORTED'
 _INVALID_IP_ADDRESS  = 'INVALID IP ADDRESS'
 
@@ -168,12 +168,12 @@ class IP2Proxy(object):
         try:
             rec = self._get_record(ip)
             if self._dbtype == 1:
-                isproxy = 0 if (rec.country_short == '-') else 1
+                is_proxy = 0 if (rec.country_short == '-') else 1
             else:
-                isproxy = 0 if (rec.proxy_type == '-') else ( 2 if (rec.proxy_type == 'DCH') else 1)
+                is_proxy = 0 if (rec.proxy_type == '-') else ( 2 if (rec.proxy_type == 'DCH') else 1)
         except:
-            isproxy = -1
-        return isproxy
+            is_proxy = -1
+        return is_proxy
 
     def get_all(self, ip):
         ''' Get the whole record with all fields read from the file '''
@@ -187,9 +187,9 @@ class IP2Proxy(object):
             proxy_type = rec.proxy_type
 
             if self._dbtype == 1:
-                isproxy = 0 if (rec.country_short == '-') else 1
+                is_proxy = 0 if (rec.country_short == '-') else 1
             else:
-                isproxy = 0 if (rec.proxy_type == '-') else ( 2 if (rec.proxy_type == 'DCH') else 1)
+                is_proxy = 0 if (rec.proxy_type == '-') else ( 2 if (rec.proxy_type == 'DCH') else 1)
         except:
             country_short = _INVALID_IP_ADDRESS
             country_long = _INVALID_IP_ADDRESS
@@ -197,10 +197,10 @@ class IP2Proxy(object):
             city = _INVALID_IP_ADDRESS
             isp = _INVALID_IP_ADDRESS
             proxy_type = _INVALID_IP_ADDRESS
-            isproxy = -1
+            is_proxy = -1
 
         results = {}
-        results['isproxy'] = isproxy
+        results['is_proxy'] = is_proxy
         results['proxy_type'] = proxy_type
         results['country_short'] = country_short
         results['country_long'] = country_long

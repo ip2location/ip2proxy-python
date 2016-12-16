@@ -2,7 +2,7 @@
 
 from distutils.core import setup
 setup(name='IP2Proxy',
-        version='1.0.0',
+        version='1.0.1',
         description='Python API for IP2Proxy database',
         author='IP2Location',
         author_email='support@ip2location.com',

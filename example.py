@@ -38,7 +38,7 @@ print ('ISP: ' + db.get_isp("4.0.0.47"))
 
 # single function to get all proxy data returned in array
 record = db.get_all("4.0.0.47")
-print ('Is Proxy: ' + str(record['isproxy']))
+print ('Is Proxy: ' + str(record['is_proxy']))
 print ('Proxy Type: ' + record['proxy_type'])
 print ('Country Code: ' + record['country_short'])
 print ('Country Name: ' + record['country_long'])
