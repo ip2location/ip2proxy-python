@@ -36,6 +36,13 @@ Below are the methods supported in this library.
 2. Execute python setup.py build
 3. Execute python setup.py install
 
+or
+
+To install this module type the following (for PyPI):
+
+	pip install IP2Location
+
+
 ## Testing
     python sample.py
     python test.py
