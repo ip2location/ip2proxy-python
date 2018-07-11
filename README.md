@@ -40,7 +40,7 @@ or
 
 To install this module type the following (for PyPI):
 
-	pip install IP2Location
+	pip install IP2Proxy
 
 
 ## Testing
