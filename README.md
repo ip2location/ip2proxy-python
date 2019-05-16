@@ -27,6 +27,11 @@ Below are the methods supported in this library.
 |get_region|Return the ISO3166-2 region name of the proxy. Please visit <a href="https://www.ip2location.com/free/iso3166-2" target="_blank">ISO3166-2 Subdivision Code</a> for the information of ISO3166-2 supported|
 |get_city|Return the city name of the proxy.|
 |get_isp|Return the ISP name of the proxy.|
+|get_domain|Return the domain name of proxy's IP address or domain name.|
+|get_usage_type|Return the ISP's usage type of proxy's IP address or domain name. Please see [Usage Type](https://github.com/ip2location/ip2proxy-python#usage-type) for details.|
+|get_asn|Return the autonomous system number (ASN) of proxy's IP address or domain name.|
+|get_as_name|Return the autonomous system (AS) name of proxy's IP address or domain name.|
+|get_last_seen|Return the last seen days ago value of proxy's IP address or domain name.|
 
 ## Requirements
 1. Python 2.2 and above
@@ -43,10 +48,85 @@ To install this module type the following (for PyPI):
 	pip install IP2Proxy
 
 
-## Testing
-    python sample.py
-    python test.py
+## Usage
+```python
+import IP2Proxy
+
+db = IP2Proxy.IP2Proxy()
+
+# open IP2Proxy BIN database for proxy lookup
+db.open("IP2PROXY-IP-PROXYTYPE-COUNTRY-REGION-CITY-ISP-DOMAIN-USAGETYPE-ASN-LASTSEEN.BIN")
+
+# get versioning information
+print ('Module Version: ' + db.get_module_version())
+print ('Package Version: ' + db.get_package_version())
+print ('Database Version: ' + db.get_database_version())
+
+# individual proxy data check
+print ('Is Proxy: ' + str(db.is_proxy("4.0.0.47")))
+print ('Proxy Type: ' + db.get_proxy_type("4.0.0.47"))
+print ('Country Code: ' + db.get_country_short("255.255.255.255"))
+print ('Country Code: ' + db.get_country_short("4.0.0.47"))
+print ('Country Name: ' + db.get_country_long("4.0.0.47"))
+print ('Region Name: ' + db.get_region("4.0.0.47"))
+print ('City Name: ' + db.get_city("4.0.0.47"))
+print ('ISP: ' + db.get_isp("4.0.0.47"))
+print ('Domain: ' + db.get_domain("4.0.0.47"))
+print ('Usage Type: ' + db.get_usage_type("4.0.0.47"))
+print ('ASN: ' + db.get_asn("4.0.0.47"))
+print ('AS Name: ' + db.get_as_name("4.0.0.47"))
+print ('Last Seen: ' + db.get_last_seen("4.0.0.47"))
+
+# single function to get all proxy data returned in array
+record = db.get_all("4.0.0.47")
+
+print ('Is Proxy: ' + str(record['is_proxy']))
+print ('Proxy Type: ' + record['proxy_type'])
+print ('Country Code: ' + record['country_short'])
+print ('Country Name: ' + record['country_long'])
+print ('Region Name: ' + record['region'])
+print ('City Name: ' + record['city'])
+print ('ISP: ' + record['isp'])
+print ('Domain: ' + record['domain'])
+print ('Usage Type: ' + record['usage_type'])
+print ('ASN: ' + record['asn'])
+print ('AS Name: ' + record['as_name'])
+print ('Last Seen: ' + record['last_seen'])
+
+# close IP2Proxy BIN database
+db.close()
+```
+
+### Proxy Type
+
+| Proxy Type | Description                    |
+| ---------- | ------------------------------ |
+| VPN        | Anonymizing VPN services.      |
+| TOR        | Tor Exit Nodes.                |
+| PUB        | Public Proxies.                |
+| WEB        | Web Proxies.                   |
+| DCH        | Hosting Providers/Data Center. |
+| SES        | Search Engine Robots.          |
+
+## Usage Type
+
+| Usage Type | Description                     |
+| ---------- | ------------------------------- |
+| COM        | Commercial                      |
+| ORG        | Organization                    |
+| GOV        | Government                      |
+| MIL        | Military                        |
+| EDU        | University/College/School       |
+| LIB        | Library                         |
+| CDN        | Content Delivery Network        |
+| ISP        | Fixed Line ISP                  |
+| MOB        | Mobile ISP                      |
+| DCH        | Data Center/Web Hosting/Transit |
+| SES        | Search Engine Spider            |
+| RSV        | Reserved                        |
+
 
 ## Support
+
 Email: support@ip2location.com.
 URL: [https://www.ip2location.com](https://www.ip2location.com)

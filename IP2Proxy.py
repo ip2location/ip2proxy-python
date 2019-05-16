@@ -1,3 +1,19 @@
+# Copyright (C) 2002-2019 IP2Location.com
+# All Rights Reserved
+#
+# This library is free software: you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation, either
+# version 3 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; If not, see <http://www.gnu.org/licenses/>.
+
 import sys
 import struct
 import socket
@@ -34,9 +50,11 @@ if not hasattr(socket, 'inet_pton'):
         return out_addr_p.raw
     socket.inet_pton = inet_pton
 
-_VERSION = '1.0.1'
+_VERSION = '2.0.0' 
 _FIELD_NOT_SUPPORTED = 'NOT SUPPORTED'
 _INVALID_IP_ADDRESS  = 'INVALID IP ADDRESS'
+MAX_IPV4_RANGE = 4294967295
+MAX_IPV6_RANGE = 340282366920938463463374607431768211455
 
 class IP2ProxyRecord:
     ''' IP2Proxy record with all fields from the database '''
@@ -54,11 +72,16 @@ class IP2ProxyRecord:
     def __repr__(self):
         return repr(self.__dict__)
 
-_COUNTRY_POSITION             = (0, 2, 3, 3, 3)
-_REGION_POSITION              = (0, 0, 0, 4, 4)
-_CITY_POSITION                = (0, 0, 0, 5, 5)
-_ISP_POSITION                 = (0, 0, 0, 0, 6)
-_PROXYTYPE_POSITION           = (0, 0, 2, 2, 2)
+_COUNTRY_POSITION             = (0, 2, 3, 3, 3, 3, 3, 3, 3)
+_REGION_POSITION              = (0, 0, 0, 4, 4, 4, 4, 4, 4)
+_CITY_POSITION                = (0, 0, 0, 5, 5, 5, 5, 5, 5)
+_ISP_POSITION                 = (0, 0, 0, 0, 6, 6, 6, 6, 6)
+_PROXYTYPE_POSITION           = (0, 0, 2, 2, 2, 2, 2, 2, 2)
+_DOMAIN_POSITION              = (0, 0, 0, 0, 0, 7, 7, 7, 7)
+_USAGETYPE_POSITION           = (0, 0, 0, 0, 0, 0, 8, 8, 8);
+_ASN_POSITION                 = (0, 0, 0, 0, 0, 0, 0, 9, 9);
+_AS_POSITION                  = (0, 0, 0, 0, 0, 0, 0, 10, 10);
+_LASTSEEN_POSITION            = (0, 0, 0, 0, 0, 0, 0, 0, 11);
 
 class IP2Proxy(object):
     ''' IP2Proxy database '''
@@ -155,7 +178,7 @@ class IP2Proxy(object):
         return isp
 
     def get_proxy_type(self, ip):
-        ''' Get usage_type '''
+        ''' Get proxy_type '''
         try:
             rec = self._get_record(ip)
             proxy_type = rec.proxy_type
@@ -170,10 +193,55 @@ class IP2Proxy(object):
             if self._dbtype == 1:
                 is_proxy = 0 if (rec.country_short == '-') else 1
             else:
-                is_proxy = 0 if (rec.proxy_type == '-') else ( 2 if (rec.proxy_type == 'DCH') else 1)
+                is_proxy = 0 if (rec.proxy_type == '-') else ( 2 if ((rec.proxy_type == 'DCH') | (rec.proxy_type == 'SES')) else 1)
         except:
             is_proxy = -1
         return is_proxy
+
+    def get_domain(self, ip):
+        ''' Get domain '''
+        try:
+            rec = self._get_record(ip)
+            domain = rec.domain
+        except:
+            domain = _INVALID_IP_ADDRESS
+        return domain
+
+    def get_usage_type(self, ip):
+        ''' Get usage_type '''
+        try:
+            rec = self._get_record(ip)
+            usage_type = rec.usage_type
+        except:
+            usage_type = _INVALID_IP_ADDRESS
+        return usage_type
+
+    def get_asn(self, ip):
+        ''' Get asn '''
+        try:
+            rec = self._get_record(ip)
+            asn = rec.asn
+        except:
+            asn = _INVALID_IP_ADDRESS
+        return asn
+
+    def get_as_name(self, ip):
+        ''' Get as_name '''
+        try:
+            rec = self._get_record(ip)
+            as_name = rec.as_name
+        except:
+            as_name = _INVALID_IP_ADDRESS
+        return as_name
+
+    def get_last_seen(self, ip):
+        ''' Get last_seen '''
+        try:
+            rec = self._get_record(ip)
+            last_seen = rec.last_seen
+        except:
+            last_seen = _INVALID_IP_ADDRESS
+        return last_seen
 
     def get_all(self, ip):
         ''' Get the whole record with all fields read from the file '''
@@ -185,11 +253,16 @@ class IP2Proxy(object):
             city = rec.city
             isp = rec.isp
             proxy_type = rec.proxy_type
+            domain = rec.domain
+            usage_type = rec.usage_type
+            asn = rec.asn
+            as_name = rec.as_name
+            last_seen = rec.last_seen
 
             if self._dbtype == 1:
                 is_proxy = 0 if (rec.country_short == '-') else 1
             else:
-                is_proxy = 0 if (rec.proxy_type == '-') else ( 2 if (rec.proxy_type == 'DCH') else 1)
+                is_proxy = 0 if (rec.proxy_type == '-') else ( 2 if ((rec.proxy_type == 'DCH') | (rec.proxy_type == 'SES')) else 1)
         except:
             country_short = _INVALID_IP_ADDRESS
             country_long = _INVALID_IP_ADDRESS
@@ -198,6 +271,11 @@ class IP2Proxy(object):
             isp = _INVALID_IP_ADDRESS
             proxy_type = _INVALID_IP_ADDRESS
             is_proxy = -1
+            domain = _INVALID_IP_ADDRESS
+            usage_type = _INVALID_IP_ADDRESS
+            asn = _INVALID_IP_ADDRESS
+            as_name = _INVALID_IP_ADDRESS
+            last_seen = _INVALID_IP_ADDRESS
 
         results = {}
         results['is_proxy'] = is_proxy
@@ -207,6 +285,11 @@ class IP2Proxy(object):
         results['region'] = region
         results['city'] = city
         results['isp'] = isp
+        results['domain'] = domain
+        results['usage_type'] = usage_type
+        results['asn'] = asn
+        results['as_name'] = as_name
+        results['last_seen'] = last_seen
         return results
 
     def _reads(self, offset):
@@ -249,19 +332,56 @@ class IP2Proxy(object):
 
         if _COUNTRY_POSITION[self._dbtype] != 0:
             rec.country_short = self._reads(self._readi(calc_off(_COUNTRY_POSITION, mid)) + 1)
+
             rec.country_long =  self._reads(self._readi(calc_off(_COUNTRY_POSITION, mid)) + 4)
+        elif _COUNTRY_POSITION[self._dbtype] == 0:
+            rec.country_short = _FIELD_NOT_SUPPORTED
+            rec.country_long = _FIELD_NOT_SUPPORTED
 
         if _REGION_POSITION[self._dbtype] != 0:
             rec.region = self._reads(self._readi(calc_off(_REGION_POSITION, mid)) + 1)
+        elif _REGION_POSITION[self._dbtype] == 0:
+            rec.region = _FIELD_NOT_SUPPORTED
 
         if _CITY_POSITION[self._dbtype] != 0:
             rec.city = self._reads(self._readi(calc_off(_CITY_POSITION, mid)) + 1)
+        elif _CITY_POSITION[self._dbtype] == 0:
+            rec.city = _FIELD_NOT_SUPPORTED
 
         if _ISP_POSITION[self._dbtype] != 0:
             rec.isp = self._reads(self._readi(calc_off(_ISP_POSITION, mid)) + 1)
+        elif _ISP_POSITION[self._dbtype] == 0:
+            rec.isp = _FIELD_NOT_SUPPORTED
 
         if _PROXYTYPE_POSITION[self._dbtype] != 0:
             rec.proxy_type = self._reads(self._readi(calc_off(_PROXYTYPE_POSITION, mid)) + 1)
+        elif _PROXYTYPE_POSITION[self._dbtype] == 0:
+            rec.proxy_type = _FIELD_NOT_SUPPORTED
+
+        if _DOMAIN_POSITION[self._dbtype] != 0:
+            rec.domain = self._reads(self._readi(calc_off(_DOMAIN_POSITION, mid)) + 1)
+        elif _DOMAIN_POSITION[self._dbtype] == 0:
+            rec.domain = _FIELD_NOT_SUPPORTED
+
+        if _USAGETYPE_POSITION[self._dbtype] != 0:
+            rec.usage_type = self._reads(self._readi(calc_off(_USAGETYPE_POSITION, mid)) + 1)
+        elif _USAGETYPE_POSITION[self._dbtype] == 0:
+            rec.usage_type = _FIELD_NOT_SUPPORTED
+
+        if _ASN_POSITION[self._dbtype] != 0:
+            rec.asn = self._reads(self._readi(calc_off(_ASN_POSITION, mid)) + 1)
+        elif _ASN_POSITION[self._dbtype] == 0:
+            rec.asn = _FIELD_NOT_SUPPORTED
+
+        if _AS_POSITION[self._dbtype] != 0:
+            rec.as_name = self._reads(self._readi(calc_off(_AS_POSITION, mid)) + 1)
+        elif _AS_POSITION[self._dbtype] == 0:
+            rec.as_name = _FIELD_NOT_SUPPORTED
+
+        if _LASTSEEN_POSITION[self._dbtype] != 0:
+            rec.last_seen = self._reads(self._readi(calc_off(_LASTSEEN_POSITION, mid)) + 1)
+        elif _LASTSEEN_POSITION[self._dbtype] == 0:
+            rec.last_seen = _FIELD_NOT_SUPPORTED
 
         return rec
 
@@ -280,26 +400,40 @@ class IP2Proxy(object):
         ''' Parses address and returns IP version. Raises exception on invalid argument '''
         ipv = 0
         try:
-            socket.inet_pton(socket.AF_INET6, addr)
+            # socket.inet_pton(socket.AF_INET6, addr)
+            a, b = struct.unpack('!QQ', socket.inet_pton(socket.AF_INET6, addr))
+            ipnum = (a << 64) | b
             # Convert ::FFFF:x.y.z.y to IPv4
             if addr.lower().startswith('::ffff:'):
                 try:
+                    # ipnum = struct.unpack('!L', socket.inet_pton(socket.AF_INET, addr))[0]
                     socket.inet_pton(socket.AF_INET, addr)
                     ipv = 4
                 except:
-                    ipv = 6
+                    # reformat ipv4 address in ipv6 
+                    if ((ipnum >= 281470681743360) and (ipnum <= 281474976710655)):
+                        ipv = 4
+                        ipnum = ipnum - 281470681743360
+                    else:
+                        ipv = 6
             else:
                 ipv = 6
         except:
-            socket.inet_pton(socket.AF_INET, addr)
+            ipnum = struct.unpack('!L', socket.inet_pton(socket.AF_INET, addr))[0]
+            # socket.inet_pton(socket.AF_INET, addr)
             ipv = 4
-        return ipv
+        return ipv, ipnum
         
     def _get_record(self, ip):
         low = 0
-        ipv = self._parse_addr(ip) 
+        ipv = self._parse_addr(ip)[0] 
+        ipnum = self._parse_addr(ip)[1] 
         if ipv == 4:
-            ipno = struct.unpack('!L', socket.inet_pton(socket.AF_INET, ip))[0]
+            # ipnum = struct.unpack('!L', socket.inet_pton(socket.AF_INET, ip))[0]
+            if (ipnum == MAX_IPV4_RANGE):
+                ipno = ipnum - 1
+            else:
+                ipno = ipnum
             off = 0
             baseaddr = self._ipv4dbaddr
             high = self._ipv4dbcount
@@ -309,8 +443,12 @@ class IP2Proxy(object):
                 high = self._readi(indexpos + 4)
 
         elif ipv == 6:
-            a, b = struct.unpack('!QQ', socket.inet_pton(socket.AF_INET6, ip))
-            ipno = (a << 64) | b
+            # a, b = struct.unpack('!QQ', socket.inet_pton(socket.AF_INET6, ip))
+            # ipnum = (a << 64) | b
+            if (ipnum == MAX_IPV6_RANGE):
+                ipno = ipnum - 1
+            else:
+                ipno = ipnum
             off = 12
             baseaddr = self._ipv6dbaddr
             high = self._ipv6dbcount
@@ -320,7 +458,8 @@ class IP2Proxy(object):
                 high = self._readi(indexpos + 4)
 
         while low <= high:
-            mid = int((low + high) / 2)
+            # mid = int((low + high) / 2)
+            mid = int((low + high) >> 1)
             ipfrom = self._readip(baseaddr + (mid) * (self._dbcolumn * 4 + off), ipv)
             ipto = self._readip(baseaddr + (mid + 1) * (self._dbcolumn * 4 + off), ipv)
 
