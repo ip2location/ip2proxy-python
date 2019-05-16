@@ -65,7 +65,6 @@ print ('Database Version: ' + db.get_database_version())
 # individual proxy data check
 print ('Is Proxy: ' + str(db.is_proxy("4.0.0.47")))
 print ('Proxy Type: ' + db.get_proxy_type("4.0.0.47"))
-print ('Country Code: ' + db.get_country_short("255.255.255.255"))
 print ('Country Code: ' + db.get_country_short("4.0.0.47"))
 print ('Country Name: ' + db.get_country_long("4.0.0.47"))
 print ('Region Name: ' + db.get_region("4.0.0.47"))
