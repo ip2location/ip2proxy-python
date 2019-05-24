@@ -16,7 +16,7 @@ Below are the methods supported in this library.
 |---|---|
 |open|Open the IP2Proxy BIN data with **File I/O** mode for lookup.|
 |close|Close and clean up the file pointer.|
-|get_package_version|Get the package version (1 to 4 for PX1 to PX4 respectively).|
+|get_package_version|Get the package version (1 to 8 for PX1 to PX8 respectively).|
 |get_module_version|Get the module version.|
 |get_database_version|Get the database version.|
 |is_proxy|Check whether if an IP address was a proxy. Returned value:<ul><li>-1 : errors</li><li>0 : not a proxy</li><li>1 : a proxy</li><li>2 : a data center IP address</li></ul>|
