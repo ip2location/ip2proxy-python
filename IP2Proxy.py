@@ -50,7 +50,8 @@ if not hasattr(socket, 'inet_pton'):
         return out_addr_p.raw
     socket.inet_pton = inet_pton
 
-_VERSION = '2.0.0' 
+_VERSION = '2.1.0' 
+_NO_IP = 'MISSING IP ADDRESS'
 _FIELD_NOT_SUPPORTED = 'NOT SUPPORTED'
 _INVALID_IP_ADDRESS  = 'INVALID IP ADDRESS'
 MAX_IPV4_RANGE = 4294967295
@@ -65,6 +66,11 @@ class IP2ProxyRecord:
     city = _FIELD_NOT_SUPPORTED
     isp = _FIELD_NOT_SUPPORTED
     proxy_type = _FIELD_NOT_SUPPORTED
+    usage_type = _FIELD_NOT_SUPPORTED
+    as_name = _FIELD_NOT_SUPPORTED
+    asn = _FIELD_NOT_SUPPORTED
+    last_seen = _FIELD_NOT_SUPPORTED
+    domain = _FIELD_NOT_SUPPORTED
 
     def __str__(self):
         return str(self.__dict__)
@@ -78,10 +84,10 @@ _CITY_POSITION                = (0, 0, 0, 5, 5, 5, 5, 5, 5)
 _ISP_POSITION                 = (0, 0, 0, 0, 6, 6, 6, 6, 6)
 _PROXYTYPE_POSITION           = (0, 0, 2, 2, 2, 2, 2, 2, 2)
 _DOMAIN_POSITION              = (0, 0, 0, 0, 0, 7, 7, 7, 7)
-_USAGETYPE_POSITION           = (0, 0, 0, 0, 0, 0, 8, 8, 8);
-_ASN_POSITION                 = (0, 0, 0, 0, 0, 0, 0, 9, 9);
-_AS_POSITION                  = (0, 0, 0, 0, 0, 0, 0, 10, 10);
-_LASTSEEN_POSITION            = (0, 0, 0, 0, 0, 0, 0, 0, 11);
+_USAGETYPE_POSITION           = (0, 0, 0, 0, 0, 0, 8, 8, 8)
+_ASN_POSITION                 = (0, 0, 0, 0, 0, 0, 0, 9, 9)
+_AS_POSITION                  = (0, 0, 0, 0, 0, 0, 0, 10, 10)
+_LASTSEEN_POSITION            = (0, 0, 0, 0, 0, 0, 0, 0, 11)
 
 class IP2Proxy(object):
     ''' IP2Proxy database '''
@@ -191,7 +197,7 @@ class IP2Proxy(object):
         try:
             rec = self._get_record(ip)
             if self._dbtype == 1:
-                is_proxy = 0 if (rec.country_short == '-') else 1
+                is_proxy = 0 if (rec.country_short == '-') else ( 2 if ((rec.proxy_type == 'DCH') | (rec.proxy_type == 'SES')) else 1)
             else:
                 is_proxy = 0 if (rec.proxy_type == '-') else ( 2 if ((rec.proxy_type == 'DCH') | (rec.proxy_type == 'SES')) else 1)
         except:
@@ -260,7 +266,7 @@ class IP2Proxy(object):
             last_seen = rec.last_seen
 
             if self._dbtype == 1:
-                is_proxy = 0 if (rec.country_short == '-') else 1
+                is_proxy = 0 if (rec.country_short == '-') else ( 2 if ((rec.proxy_type == 'DCH') | (rec.proxy_type == 'SES')) else 1)
             else:
                 is_proxy = 0 if (rec.proxy_type == '-') else ( 2 if ((rec.proxy_type == 'DCH') | (rec.proxy_type == 'SES')) else 1)
         except:
@@ -417,7 +423,18 @@ class IP2Proxy(object):
                     else:
                         ipv = 6
             else:
-                ipv = 6
+                # ipv = 6
+                if ((ipnum >= 42545680458834377588178886921629466624) and (ipnum <= 42550872755692912415807417417958686719)):
+                    ipv = 4
+                    ipnum = ipnum >> 80
+                    ipnum = ipnum % 4294967296
+                elif ((ipnum >= 42540488161975842760550356425300246528) and (ipnum <= 42540488241204005274814694018844196863)):
+                    ipv = 4
+                    # ipnum = ipnum % 100000000000000000000000000000000
+                    ipnum = ~ ipnum
+                    ipnum = ipnum % 4294967296
+                else:
+                    ipv = 6
         except:
             ipnum = struct.unpack('!L', socket.inet_pton(socket.AF_INET, addr))[0]
             # socket.inet_pton(socket.AF_INET, addr)
@@ -456,6 +473,21 @@ class IP2Proxy(object):
                 indexpos = ((ipno >> 112) << 3) + self._ipv6indexbaseaddr
                 low = self._readi(indexpos)
                 high = self._readi(indexpos + 4)
+                
+        elif ipnum == '':
+            rec = IP2ProxyRecord()
+            rec.country_short = _NO_IP
+            rec.country_long = _NO_IP
+            rec.region = _NO_IP
+            rec.city = _NO_IP
+            rec.isp = _NO_IP
+            rec.proxy_type = _NO_IP
+            rec.domain = _NO_IP
+            rec.usage_type = _NO_IP
+            rec.asn = _NO_IP
+            rec.as_name = _NO_IP
+            rec.last_seen = _NO_IP
+            return rec
 
         while low <= high:
             # mid = int((low + high) / 2)
