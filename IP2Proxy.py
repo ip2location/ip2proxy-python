@@ -17,6 +17,7 @@
 import sys
 import struct
 import socket
+import ipaddress
 
 if sys.version < '3':
     def u(x):
@@ -50,7 +51,7 @@ if not hasattr(socket, 'inet_pton'):
         return out_addr_p.raw
     socket.inet_pton = inet_pton
 
-_VERSION = '2.2.0' 
+_VERSION = '3.0.0' 
 _NO_IP = 'MISSING IP ADDRESS'
 _FIELD_NOT_SUPPORTED = 'NOT SUPPORTED'
 _INVALID_IP_ADDRESS  = 'INVALID IP ADDRESS'
@@ -71,6 +72,7 @@ class IP2ProxyRecord:
     asn = _FIELD_NOT_SUPPORTED
     last_seen = _FIELD_NOT_SUPPORTED
     domain = _FIELD_NOT_SUPPORTED
+    threat = _FIELD_NOT_SUPPORTED
 
     def __str__(self):
         return str(self.__dict__)
@@ -78,16 +80,17 @@ class IP2ProxyRecord:
     def __repr__(self):
         return repr(self.__dict__)
 
-_COUNTRY_POSITION             = (0, 2, 3, 3, 3, 3, 3, 3, 3)
-_REGION_POSITION              = (0, 0, 0, 4, 4, 4, 4, 4, 4)
-_CITY_POSITION                = (0, 0, 0, 5, 5, 5, 5, 5, 5)
-_ISP_POSITION                 = (0, 0, 0, 0, 6, 6, 6, 6, 6)
-_PROXYTYPE_POSITION           = (0, 0, 2, 2, 2, 2, 2, 2, 2)
-_DOMAIN_POSITION              = (0, 0, 0, 0, 0, 7, 7, 7, 7)
-_USAGETYPE_POSITION           = (0, 0, 0, 0, 0, 0, 8, 8, 8)
-_ASN_POSITION                 = (0, 0, 0, 0, 0, 0, 0, 9, 9)
-_AS_POSITION                  = (0, 0, 0, 0, 0, 0, 0, 10, 10)
-_LASTSEEN_POSITION            = (0, 0, 0, 0, 0, 0, 0, 0, 11)
+_COUNTRY_POSITION             = (0,  2,  3,  3,  3,  3,  3,  3,  3,  3,  3)
+_REGION_POSITION              = (0,  0,  0,  4,  4,  4,  4,  4,  4,  4,  4)
+_CITY_POSITION                = (0,  0,  0,  5,  5,  5,  5,  5,  5,  5,  5)
+_ISP_POSITION                 = (0,  0,  0,  0,  6,  6,  6,  6,  6,  6,  6)
+_PROXYTYPE_POSITION           = (0,  0,  2,  2,  2,  2,  2,  2,  2,  2,  2)
+_DOMAIN_POSITION              = (0,  0,  0,  0,  0,  7,  7,  7,  7,  7,  7)
+_USAGETYPE_POSITION           = (0,  0,  0,  0,  0,  0,  8,  8,  8,  8,  8)
+_ASN_POSITION                 = (0,  0,  0,  0,  0,  0,  0,  9,  9,  9,  9)
+_AS_POSITION                  = (0,  0,  0,  0,  0,  0,  0, 10, 10, 10, 10)
+_LASTSEEN_POSITION            = (0,  0,  0,  0,  0,  0,  0,  0, 11, 11, 11)
+_THREAT_POSITION              = (0,  0,  0,  0,  0,  0,  0,  0,  0, 12, 12)
 
 class IP2Proxy(object):
     ''' IP2Proxy database '''
@@ -196,10 +199,17 @@ class IP2Proxy(object):
         ''' Determine whether is a proxy '''
         try:
             rec = self._get_record(ip)
-            if self._dbtype == 1:
-                is_proxy = 0 if (rec.country_short == '-') else ( 2 if ((rec.proxy_type == 'DCH') | (rec.proxy_type == 'SES')) else 1)
+            # if self._dbtype == 1:
+                # is_proxy = 0 if (rec.country_short == '-') else ( 2 if ((rec.proxy_type == 'DCH') | (rec.proxy_type == 'SES')) else 1)
+            # else:
+                # is_proxy = 0 if (rec.proxy_type == '-') else ( 2 if ((rec.proxy_type == 'DCH') | (rec.proxy_type == 'SES')) else 1)
+            if rec.country_short != _INVALID_IP_ADDRESS:
+                if self._dbtype == 1:
+                    is_proxy = 0 if (rec.country_short == '-') else ( 2 if ((rec.proxy_type == 'DCH') | (rec.proxy_type == 'SES')) else 1)
+                else:
+                    is_proxy = 0 if (rec.proxy_type == '-') else ( 2 if ((rec.proxy_type == 'DCH') | (rec.proxy_type == 'SES')) else 1)
             else:
-                is_proxy = 0 if (rec.proxy_type == '-') else ( 2 if ((rec.proxy_type == 'DCH') | (rec.proxy_type == 'SES')) else 1)
+                is_proxy = -1
         except:
             is_proxy = -1
         return is_proxy
@@ -265,10 +275,13 @@ class IP2Proxy(object):
             as_name = rec.as_name
             last_seen = rec.last_seen
 
-            if self._dbtype == 1:
-                is_proxy = 0 if (rec.country_short == '-') else ( 2 if ((rec.proxy_type == 'DCH') | (rec.proxy_type == 'SES')) else 1)
+            if rec.country_short != _INVALID_IP_ADDRESS:
+                if self._dbtype == 1:
+                    is_proxy = 0 if (rec.country_short == '-') else ( 2 if ((rec.proxy_type == 'DCH') | (rec.proxy_type == 'SES')) else 1)
+                else:
+                    is_proxy = 0 if (rec.proxy_type == '-') else ( 2 if ((rec.proxy_type == 'DCH') | (rec.proxy_type == 'SES')) else 1)
             else:
-                is_proxy = 0 if (rec.proxy_type == '-') else ( 2 if ((rec.proxy_type == 'DCH') | (rec.proxy_type == 'SES')) else 1)
+                is_proxy = -1
         except:
             country_short = _INVALID_IP_ADDRESS
             country_long = _INVALID_IP_ADDRESS
@@ -410,9 +423,23 @@ class IP2Proxy(object):
             yield self._read_record(low, 6)
             low += 1
 
+    def _validate_addr(self, addr):
+        ''' Validate IP address '''
+        try:
+            # ip = ipaddress.ip_address(addr)
+            ip = ipaddress.ip_address(u(addr))
+            return True
+        except ValueError:
+            return False
+
     def _parse_addr(self, addr): 
         ''' Parses address and returns IP version. Raises exception on invalid argument '''
         ipv = 0
+        ipnum = -1
+        ipvalidateresult = self._validate_addr(addr)
+        # print ("IP " + str(addr) + " is " + str(ipvalidateresult) + ".")
+        if (ipvalidateresult == False):
+            return ipv, ipnum
         try:
             # socket.inet_pton(socket.AF_INET6, addr)
             a, b = struct.unpack('!QQ', socket.inet_pton(socket.AF_INET6, addr))
@@ -495,6 +522,20 @@ class IP2Proxy(object):
             rec.asn = _NO_IP
             rec.as_name = _NO_IP
             rec.last_seen = _NO_IP
+            return rec
+        else:
+            rec = IP2ProxyRecord()
+            rec.country_short = _INVALID_IP_ADDRESS
+            rec.country_long = _INVALID_IP_ADDRESS
+            rec.region = _INVALID_IP_ADDRESS
+            rec.city = _INVALID_IP_ADDRESS
+            rec.isp = _INVALID_IP_ADDRESS
+            rec.proxy_type = _INVALID_IP_ADDRESS
+            rec.domain = _INVALID_IP_ADDRESS
+            rec.usage_type = _INVALID_IP_ADDRESS
+            rec.asn = _INVALID_IP_ADDRESS
+            rec.as_name = _INVALID_IP_ADDRESS
+            rec.last_seen = _INVALID_IP_ADDRESS
             return rec
 
         while low <= high:

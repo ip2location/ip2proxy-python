@@ -32,6 +32,7 @@ Below are the methods supported in this library.
 |get_asn|Return the autonomous system number (ASN) of proxy's IP address or domain name.|
 |get_as_name|Return the autonomous system (AS) name of proxy's IP address or domain name.|
 |get_last_seen|Return the last seen days ago value of proxy's IP address or domain name.|
+|get_threat|Return the threat types reported to proxy's IP address or domain name.|
 
 ## Requirements
 1. Python 2.2 and above
@@ -55,7 +56,7 @@ import IP2Proxy
 db = IP2Proxy.IP2Proxy()
 
 # open IP2Proxy BIN database for proxy lookup
-db.open("IP2PROXY-IP-PROXYTYPE-COUNTRY-REGION-CITY-ISP-DOMAIN-USAGETYPE-ASN-LASTSEEN.BIN")
+db.open("IP2PROXY-IP-PROXYTYPE-COUNTRY-REGION-CITY-ISP-DOMAIN-USAGETYPE-ASN-LASTSEEN-THREAT-RESIDENTIAL.BIN")
 
 # get versioning information
 print ('Module Version: ' + db.get_module_version())
@@ -75,6 +76,7 @@ print ('Usage Type: ' + db.get_usage_type("4.0.0.47"))
 print ('ASN: ' + db.get_asn("4.0.0.47"))
 print ('AS Name: ' + db.get_as_name("4.0.0.47"))
 print ('Last Seen: ' + db.get_last_seen("4.0.0.47"))
+print ('Threat: ' + db.get_threat("4.0.0.47"))
 
 # single function to get all proxy data returned in array
 record = db.get_all("4.0.0.47")
@@ -91,12 +93,13 @@ print ('Usage Type: ' + record['usage_type'])
 print ('ASN: ' + record['asn'])
 print ('AS Name: ' + record['as_name'])
 print ('Last Seen: ' + record['last_seen'])
+print ('Threat: ' + record['threat'])
 
 # close IP2Proxy BIN database
 db.close()
 ```
 
-### Proxy Type
+## Proxy Type
 
 | Proxy Type | Description                    |
 | ---------- | ------------------------------ |
@@ -106,6 +109,7 @@ db.close()
 | WEB        | Web Proxies.                   |
 | DCH        | Hosting Providers/Data Center. |
 | SES        | Search Engine Robots.          |
+| RES        | Residential Proxies [PX10+]    |
 
 ## Usage Type
 
@@ -123,6 +127,15 @@ db.close()
 | DCH        | Data Center/Web Hosting/Transit |
 | SES        | Search Engine Spider            |
 | RSV        | Reserved                        |
+
+## Threat Type
+
+| Threat Type | Description                |
+| ----------- | -------------------------- |
+| SPAM        | Spammer                    |
+| SCANNER     | Security Scanner or Attack |
+| BOTNET      | Spyware or Malware         |
+
 
 
 ## Support
