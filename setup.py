@@ -16,7 +16,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     install_requires=[
         'ipaddress;python_version<"3.3"',
-    ]
+    ],
     classifiers=(
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
