@@ -3,8 +3,7 @@ import IP2Proxy
 db = IP2Proxy.IP2Proxy()
 
 # open IP2Proxy BIN database for proxy lookup
-# db.open(os.path.join("data", "IP2PROXY-IP-PROXYTYPE-COUNTRY-REGION-CITY-ISP.SAMPLE.BIN"))
-db.open("IP2PROXY-IP-PROXYTYPE-COUNTRY-REGION-CITY-ISP-DOMAIN-USAGETYPE-ASN-LASTSEEN-THREAT-RESIDENTIAL.BIN")
+db.open(os.path.join("data", "IP2PROXY-IP-PROXYTYPE-COUNTRY-REGION-CITY-ISP.SAMPLE.BIN"))
 
 # get versioning information
 print ('Module Version: ' + db.get_module_version())

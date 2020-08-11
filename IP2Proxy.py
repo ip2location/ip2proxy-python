@@ -1,4 +1,4 @@
-# Copyright (C) 2002-2019 IP2Location.com
+# Copyright (C) 2002-2020 IP2Location.com
 # All Rights Reserved
 #
 # This library is free software: you can redistribute it and/or
@@ -34,6 +34,7 @@ else:
             return x
         return x.encode('ascii')
         
+
 # Windows version of Python does not provide it
 #          for compatibility with older versions of Windows.
 if not hasattr(socket, 'inet_pton'):
@@ -51,7 +52,7 @@ if not hasattr(socket, 'inet_pton'):
         return out_addr_p.raw
     socket.inet_pton = inet_pton
 
-_VERSION = '3.0.0' 
+_VERSION = '3.1.0' 
 _NO_IP = 'MISSING IP ADDRESS'
 _FIELD_NOT_SUPPORTED = 'NOT SUPPORTED'
 _INVALID_IP_ADDRESS  = 'INVALID IP ADDRESS'
@@ -259,8 +260,19 @@ class IP2Proxy(object):
             last_seen = _INVALID_IP_ADDRESS
         return last_seen
 
+    def get_threat(self, ip):
+        ''' Get threat'''
+        try:
+            rec = self._get_record(ip)
+            threat = rec.threat
+        except:
+            threat = _INVALID_IP_ADDRESS
+        return threat
+
     def get_all(self, ip):
         ''' Get the whole record with all fields read from the file '''
+        # if self._validate_addr(ip) == False:
+            # return ipv, ipnum
         try:
             rec = self._get_record(ip)
             country_short = rec.country_short
@@ -274,7 +286,12 @@ class IP2Proxy(object):
             asn = rec.asn
             as_name = rec.as_name
             last_seen = rec.last_seen
+            threat = rec.threat
 
+            # if self._dbtype == 1:
+                # is_proxy = 0 if (rec.country_short == '-') else ( 2 if ((rec.proxy_type == 'DCH') | (rec.proxy_type == 'SES')) else 1)
+            # else:
+                # is_proxy = 0 if (rec.proxy_type == '-') else ( 2 if ((rec.proxy_type == 'DCH') | (rec.proxy_type == 'SES')) else 1)
             if rec.country_short != _INVALID_IP_ADDRESS:
                 if self._dbtype == 1:
                     is_proxy = 0 if (rec.country_short == '-') else ( 2 if ((rec.proxy_type == 'DCH') | (rec.proxy_type == 'SES')) else 1)
@@ -283,6 +300,8 @@ class IP2Proxy(object):
             else:
                 is_proxy = -1
         except:
+        # except Exception as ex:
+            print(ex)
             country_short = _INVALID_IP_ADDRESS
             country_long = _INVALID_IP_ADDRESS
             region = _INVALID_IP_ADDRESS
@@ -295,6 +314,7 @@ class IP2Proxy(object):
             asn = _INVALID_IP_ADDRESS
             as_name = _INVALID_IP_ADDRESS
             last_seen = _INVALID_IP_ADDRESS
+            threat = _INVALID_IP_ADDRESS
 
         results = {}
         results['is_proxy'] = is_proxy
@@ -309,6 +329,7 @@ class IP2Proxy(object):
         results['asn'] = asn
         results['as_name'] = as_name
         results['last_seen'] = last_seen
+        results['threat'] = threat
         return results
 
     def _reads(self, offset):
@@ -316,10 +337,6 @@ class IP2Proxy(object):
         n = struct.unpack('B', self._f.read(1))[0]
         return u(self._f.read(n))
         # return self._f.read(n).decode('iso-8859-1').encode('utf-8')
-        # if sys.version < '3':
-            # return str(self._f.read(n).decode('iso-8859-1').encode('utf-8'))
-        # else :
-            # return u(self._f.read(n).decode('iso-8859-1').encode('utf-8')
 
     def _readi(self, offset):
         self._f.seek(offset - 1)
@@ -344,71 +361,72 @@ class IP2Proxy(object):
         if ipv == 4:
             off = 0
             baseaddr = self._ipv4dbaddr
-            dbcolumn_width = self._dbcolumn * 4 + 4
         elif ipv == 6:
             off = 12
             baseaddr = self._ipv6dbaddr
-            dbcolumn_width = self._dbcolumn * 4
 
         rec.ip = self._readips(baseaddr + (mid) * self._dbcolumn * 4, ipv)
 
         def calc_off(what, mid):
             return baseaddr + mid * (self._dbcolumn * 4 + off) + off + 4 * (what[self._dbtype]-1)
 
-        self._f.seek((calc_off(_PROXYTYPE_POSITION, mid)) - 1)
-        raw_positions_row = self._f.read(dbcolumn_width)
-
         if _COUNTRY_POSITION[self._dbtype] != 0:
-            rec.country_short = self._reads(struct.unpack('<I', raw_positions_row[((_COUNTRY_POSITION[self._dbtype]-1) * 4 - 4) : ((_COUNTRY_POSITION[self._dbtype]-1) * 4)])[0] + 1)
-            rec.country_long =  self._reads(struct.unpack('<I', raw_positions_row[((_COUNTRY_POSITION[self._dbtype]-1) * 4 - 4) : ((_COUNTRY_POSITION[self._dbtype]-1) * 4)])[0] + 4)
+            rec.country_short = self._reads(self._readi(calc_off(_COUNTRY_POSITION, mid)) + 1)
+
+            rec.country_long =  self._reads(self._readi(calc_off(_COUNTRY_POSITION, mid)) + 4)
         elif _COUNTRY_POSITION[self._dbtype] == 0:
             rec.country_short = _FIELD_NOT_SUPPORTED
             rec.country_long = _FIELD_NOT_SUPPORTED
 
         if _REGION_POSITION[self._dbtype] != 0:
-            rec.region = self._reads(struct.unpack('<I', raw_positions_row[((_REGION_POSITION[self._dbtype]-1) * 4 - 4) : ((_REGION_POSITION[self._dbtype]-1) * 4)])[0] + 1)
+            rec.region = self._reads(self._readi(calc_off(_REGION_POSITION, mid)) + 1)
         elif _REGION_POSITION[self._dbtype] == 0:
             rec.region = _FIELD_NOT_SUPPORTED
 
         if _CITY_POSITION[self._dbtype] != 0:
-            rec.city = self._reads(struct.unpack('<I', raw_positions_row[((_CITY_POSITION[self._dbtype]-1) * 4 - 4) : ((_CITY_POSITION[self._dbtype]-1) * 4)])[0] + 1)
+            rec.city = self._reads(self._readi(calc_off(_CITY_POSITION, mid)) + 1)
         elif _CITY_POSITION[self._dbtype] == 0:
             rec.city = _FIELD_NOT_SUPPORTED
 
         if _ISP_POSITION[self._dbtype] != 0:
-            rec.isp = self._reads(struct.unpack('<I', raw_positions_row[((_ISP_POSITION[self._dbtype]-1) * 4 - 4) : ((_ISP_POSITION[self._dbtype]-1) * 4)])[0] + 1)
+            rec.isp = self._reads(self._readi(calc_off(_ISP_POSITION, mid)) + 1)
         elif _ISP_POSITION[self._dbtype] == 0:
             rec.isp = _FIELD_NOT_SUPPORTED
 
         if _PROXYTYPE_POSITION[self._dbtype] != 0:
-            rec.proxy_type = self._reads(struct.unpack('<I', raw_positions_row[0 : ((_PROXYTYPE_POSITION[self._dbtype]-1) * 4)])[0] + 1)
+            rec.proxy_type = self._reads(self._readi(calc_off(_PROXYTYPE_POSITION, mid)) + 1)
         elif _PROXYTYPE_POSITION[self._dbtype] == 0:
             rec.proxy_type = _FIELD_NOT_SUPPORTED
 
         if _DOMAIN_POSITION[self._dbtype] != 0:
-            rec.domain = self._reads(struct.unpack('<I', raw_positions_row[((_DOMAIN_POSITION[self._dbtype]-1) * 4 - 4) : ((_DOMAIN_POSITION[self._dbtype]-1) * 4)])[0] + 1)
+            rec.domain = self._reads(self._readi(calc_off(_DOMAIN_POSITION, mid)) + 1)
         elif _DOMAIN_POSITION[self._dbtype] == 0:
             rec.domain = _FIELD_NOT_SUPPORTED
 
         if _USAGETYPE_POSITION[self._dbtype] != 0:
-            rec.usage_type = self._reads(struct.unpack('<I', raw_positions_row[((_USAGETYPE_POSITION[self._dbtype]-1) * 4 - 4) : ((_USAGETYPE_POSITION[self._dbtype]-1) * 4)])[0] + 1)
+            rec.usage_type = self._reads(self._readi(calc_off(_USAGETYPE_POSITION, mid)) + 1)
         elif _USAGETYPE_POSITION[self._dbtype] == 0:
             rec.usage_type = _FIELD_NOT_SUPPORTED
 
         if _ASN_POSITION[self._dbtype] != 0:
-            rec.asn = self._reads(struct.unpack('<I', raw_positions_row[((_ASN_POSITION[self._dbtype]-1) * 4 - 4) : ((_ASN_POSITION[self._dbtype]-1) * 4)])[0] + 1)
+            rec.asn = self._reads(self._readi(calc_off(_ASN_POSITION, mid)) + 1)
         elif _ASN_POSITION[self._dbtype] == 0:
             rec.asn = _FIELD_NOT_SUPPORTED
 
         if _AS_POSITION[self._dbtype] != 0:
-            rec.as_name = self._reads(struct.unpack('<I', raw_positions_row[((_AS_POSITION[self._dbtype]-1) * 4 - 4) : ((_AS_POSITION[self._dbtype]-1) * 4)])[0] + 1)
+            rec.as_name = self._reads(self._readi(calc_off(_AS_POSITION, mid)) + 1)
         elif _AS_POSITION[self._dbtype] == 0:
             rec.as_name = _FIELD_NOT_SUPPORTED
 
         if _LASTSEEN_POSITION[self._dbtype] != 0:
-            rec.last_seen = self._reads(struct.unpack('<I', raw_positions_row[((_LASTSEEN_POSITION[self._dbtype]-1) * 4 - 4) : ((_LASTSEEN_POSITION[self._dbtype]-1) * 4)])[0] + 1)
+            rec.last_seen = self._reads(self._readi(calc_off(_LASTSEEN_POSITION, mid)) + 1)
         elif _LASTSEEN_POSITION[self._dbtype] == 0:
             rec.last_seen = _FIELD_NOT_SUPPORTED
+
+        if _THREAT_POSITION[self._dbtype] != 0:
+            rec.threat = self._reads(self._readi(calc_off(_THREAT_POSITION, mid)) + 1)
+        elif _THREAT_POSITION[self._dbtype] == 0:
+            rec.threat = _FIELD_NOT_SUPPORTED
 
         return rec
 
@@ -509,7 +527,8 @@ class IP2Proxy(object):
                 low = self._readi(indexpos)
                 high = self._readi(indexpos + 4)
                 
-        elif ipnum == '':
+        # elif (ipnum == '' or ipv == ):
+        elif (ipnum == ''):
             rec = IP2ProxyRecord()
             rec.country_short = _NO_IP
             rec.country_long = _NO_IP
