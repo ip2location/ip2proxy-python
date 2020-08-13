@@ -370,7 +370,6 @@ class IP2Proxy(object):
         def calc_off(what, mid):
             return baseaddr + mid * (self._dbcolumn * 4 + off) + off + 4 * (what[self._dbtype]-1)
 
-        # print(_COUNTRY_POSITION[self._dbtype])
         if _COUNTRY_POSITION[self._dbtype] != 0:
             rec.country_short = self._reads(self._readi(calc_off(_COUNTRY_POSITION, mid)) + 1)
 
@@ -378,7 +377,6 @@ class IP2Proxy(object):
         elif _COUNTRY_POSITION[self._dbtype] == 0:
             rec.country_short = _FIELD_NOT_SUPPORTED
             rec.country_long = _FIELD_NOT_SUPPORTED
-        # print(rec.country_short)
 
         if _REGION_POSITION[self._dbtype] != 0:
             rec.region = self._reads(self._readi(calc_off(_REGION_POSITION, mid)) + 1)
