@@ -52,7 +52,7 @@ if not hasattr(socket, 'inet_pton'):
         return out_addr_p.raw
     socket.inet_pton = inet_pton
 
-_VERSION = '3.1.0' 
+_VERSION = '3.1.2' 
 _NO_IP = 'MISSING IP ADDRESS'
 _FIELD_NOT_SUPPORTED = 'NOT SUPPORTED'
 _INVALID_IP_ADDRESS  = 'INVALID IP ADDRESS'
