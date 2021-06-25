@@ -16,7 +16,7 @@ Below are the methods supported in this library.
 |---|---|
 |open|Open the IP2Proxy BIN data with **File I/O** mode for lookup.|
 |close|Close and clean up the file pointer.|
-|get_package_version|Get the package version (1 to 10 for PX1 to PX10 respectively).|
+|get_package_version|Get the package version (1 to 11 for PX1 to PX11 respectively).|
 |get_module_version|Get the module version.|
 |get_database_version|Get the database version.|
 |is_proxy|Check whether if an IP address was a proxy. Returned value:<ul><li>-1 : errors</li><li>0 : not a proxy</li><li>1 : a proxy</li><li>2 : a data center IP address</li></ul>|
@@ -33,6 +33,7 @@ Below are the methods supported in this library.
 |get_as_name|Return the autonomous system (AS) name of proxy's IP address or domain name.|
 |get_last_seen|Return the last seen days ago value of proxy's IP address or domain name.|
 |get_threat|Return the threat types reported to proxy's IP address or domain name.|
+|get_provider|Returns the VPN service provider name if available.|
 
 ## Requirements
 1. Python 2.2 and above
@@ -77,6 +78,7 @@ print ('ASN: ' + db.get_asn("4.0.0.47"))
 print ('AS Name: ' + db.get_as_name("4.0.0.47"))
 print ('Last Seen: ' + db.get_last_seen("4.0.0.47"))
 print ('Threat: ' + db.get_threat("4.0.0.47"))
+print ('Provider: ' + db.get_provider("4.0.0.47"))
 
 # single function to get all proxy data returned in array
 record = db.get_all("4.0.0.47")
@@ -94,6 +96,7 @@ print ('ASN: ' + record['asn'])
 print ('AS Name: ' + record['as_name'])
 print ('Last Seen: ' + record['last_seen'])
 print ('Threat: ' + record['threat'])
+print ('Provider: ' + record['provider'])
 
 # close IP2Proxy BIN database
 db.close()

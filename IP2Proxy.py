@@ -18,6 +18,7 @@ import sys
 import struct
 import socket
 import ipaddress
+import os
 
 if sys.version < '3':
     def u(x):
@@ -52,7 +53,7 @@ if not hasattr(socket, 'inet_pton'):
         return out_addr_p.raw
     socket.inet_pton = inet_pton
 
-_VERSION = '3.1.2' 
+_VERSION = '3.2.0' 
 _NO_IP = 'MISSING IP ADDRESS'
 _FIELD_NOT_SUPPORTED = 'NOT SUPPORTED'
 _INVALID_IP_ADDRESS  = 'INVALID IP ADDRESS'
@@ -74,6 +75,7 @@ class IP2ProxyRecord:
     last_seen = _FIELD_NOT_SUPPORTED
     domain = _FIELD_NOT_SUPPORTED
     threat = _FIELD_NOT_SUPPORTED
+    provider = _FIELD_NOT_SUPPORTED
 
     def __str__(self):
         return str(self.__dict__)
@@ -81,23 +83,25 @@ class IP2ProxyRecord:
     def __repr__(self):
         return repr(self.__dict__)
 
-_COUNTRY_POSITION             = (0,  2,  3,  3,  3,  3,  3,  3,  3,  3,  3)
-_REGION_POSITION              = (0,  0,  0,  4,  4,  4,  4,  4,  4,  4,  4)
-_CITY_POSITION                = (0,  0,  0,  5,  5,  5,  5,  5,  5,  5,  5)
-_ISP_POSITION                 = (0,  0,  0,  0,  6,  6,  6,  6,  6,  6,  6)
-_PROXYTYPE_POSITION           = (0,  0,  2,  2,  2,  2,  2,  2,  2,  2,  2)
-_DOMAIN_POSITION              = (0,  0,  0,  0,  0,  7,  7,  7,  7,  7,  7)
-_USAGETYPE_POSITION           = (0,  0,  0,  0,  0,  0,  8,  8,  8,  8,  8)
-_ASN_POSITION                 = (0,  0,  0,  0,  0,  0,  0,  9,  9,  9,  9)
-_AS_POSITION                  = (0,  0,  0,  0,  0,  0,  0, 10, 10, 10, 10)
-_LASTSEEN_POSITION            = (0,  0,  0,  0,  0,  0,  0,  0, 11, 11, 11)
-_THREAT_POSITION              = (0,  0,  0,  0,  0,  0,  0,  0,  0, 12, 12)
+_COUNTRY_POSITION             = (0,  2,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3)
+_REGION_POSITION              = (0,  0,  0,  4,  4,  4,  4,  4,  4,  4,  4,  4)
+_CITY_POSITION                = (0,  0,  0,  5,  5,  5,  5,  5,  5,  5,  5,  5)
+_ISP_POSITION                 = (0,  0,  0,  0,  6,  6,  6,  6,  6,  6,  6,  6)
+_PROXYTYPE_POSITION           = (0,  0,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2)
+_DOMAIN_POSITION              = (0,  0,  0,  0,  0,  7,  7,  7,  7,  7,  7,  7)
+_USAGETYPE_POSITION           = (0,  0,  0,  0,  0,  0,  8,  8,  8,  8,  8,  8)
+_ASN_POSITION                 = (0,  0,  0,  0,  0,  0,  0,  9,  9,  9,  9,  9)
+_AS_POSITION                  = (0,  0,  0,  0,  0,  0,  0, 10, 10, 10, 10, 10)
+_LASTSEEN_POSITION            = (0,  0,  0,  0,  0,  0,  0,  0, 11, 11, 11, 11)
+_THREAT_POSITION              = (0,  0,  0,  0,  0,  0,  0,  0,  0, 12, 12, 12)
+_PROVIDER_POSITION            = (0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 13)
 
 class IP2Proxy(object):
     ''' IP2Proxy database '''
 
     def __init__(self, filename=None):
         ''' Creates a database object and opens a file if filename is given '''
+        
         if filename:
             self.open(filename)
 
@@ -113,6 +117,10 @@ class IP2Proxy(object):
         ''' Opens a database file '''
         # Ensure old file is closed before opening a new one
         self.close()
+        
+        # if filename is not None:
+        if os.path.isfile(filename) == False:
+            raise ValueError("The database file does not seem to exist.")
 
         self._f = open(filename, 'rb')
         self._dbtype = struct.unpack('B', self._f.read(1))[0]
@@ -126,6 +134,14 @@ class IP2Proxy(object):
         self._ipv6dbaddr = struct.unpack('<I', self._f.read(4))[0]
         self._ipv4indexbaseaddr = struct.unpack('<I', self._f.read(4))[0]
         self._ipv6indexbaseaddr = struct.unpack('<I', self._f.read(4))[0]
+        self._productcode = struct.unpack('B', self._f.read(1))[0]
+        self._licensecode = struct.unpack('B', self._f.read(1))[0]
+        self._databasesize = struct.unpack('B', self._f.read(1))[0]
+        if (self._productcode != 2) :
+            if (self._dbyear > 20 and self._productcode != 0) :
+                self._f.close()
+                del self._f
+                raise ValueError("Incorrect IP2Location BIN file format. Please make sure that you are using the latest IP2Location BIN file.")
 
     def close(self):
         if hasattr(self, '_f'):
@@ -269,10 +285,17 @@ class IP2Proxy(object):
             threat = _INVALID_IP_ADDRESS
         return threat
 
+    def get_provider(self, ip):
+        ''' Get provider'''
+        try:
+            rec = self._get_record(ip)
+            provider = rec.provider
+        except:
+            provider = _INVALID_IP_ADDRESS
+        return provider
+
     def get_all(self, ip):
         ''' Get the whole record with all fields read from the file '''
-        # if self._validate_addr(ip) == False:
-            # return ipv, ipnum
         try:
             rec = self._get_record(ip)
             country_short = rec.country_short
@@ -287,6 +310,7 @@ class IP2Proxy(object):
             as_name = rec.as_name
             last_seen = rec.last_seen
             threat = rec.threat
+            provider = rec.provider
 
             # if self._dbtype == 1:
                 # is_proxy = 0 if (rec.country_short == '-') else ( 2 if ((rec.proxy_type == 'DCH') | (rec.proxy_type == 'SES')) else 1)
@@ -301,7 +325,7 @@ class IP2Proxy(object):
                 is_proxy = -1
         except:
         # except Exception as ex:
-            print(ex)
+            # print(ex)
             country_short = _INVALID_IP_ADDRESS
             country_long = _INVALID_IP_ADDRESS
             region = _INVALID_IP_ADDRESS
@@ -315,6 +339,7 @@ class IP2Proxy(object):
             as_name = _INVALID_IP_ADDRESS
             last_seen = _INVALID_IP_ADDRESS
             threat = _INVALID_IP_ADDRESS
+            provider = _INVALID_IP_ADDRESS
 
         results = {}
         results['is_proxy'] = is_proxy
@@ -330,6 +355,7 @@ class IP2Proxy(object):
         results['as_name'] = as_name
         results['last_seen'] = last_seen
         results['threat'] = threat
+        results['provider'] = provider
         return results
 
     def _reads(self, offset):
@@ -428,6 +454,11 @@ class IP2Proxy(object):
         elif _THREAT_POSITION[self._dbtype] == 0:
             rec.threat = _FIELD_NOT_SUPPORTED
 
+        if _PROVIDER_POSITION[self._dbtype] != 0:
+            rec.provider = self._reads(self._readi(calc_off(_PROVIDER_POSITION, mid)) + 1)
+        elif _PROVIDER_POSITION[self._dbtype] == 0:
+            rec.provider = _FIELD_NOT_SUPPORTED
+
         return rec
 
     def __iter__(self):
@@ -493,12 +524,30 @@ class IP2Proxy(object):
             # socket.inet_pton(socket.AF_INET, addr)
             ipv = 4
         return ipv, ipnum
-        
+
     def _get_record(self, ip):
         low = 0
         ipv = self._parse_addr(ip)[0] 
-        ipnum = self._parse_addr(ip)[1] 
-        if ipv == 4:
+        ipnum = self._parse_addr(ip)[1]
+        print (ipv)
+        print (ipnum)
+        if (ipv == 0):
+            rec = IP2ProxyRecord()
+            rec.country_short = _INVALID_IP_ADDRESS
+            rec.country_long = _INVALID_IP_ADDRESS
+            rec.region = _INVALID_IP_ADDRESS
+            rec.city = _INVALID_IP_ADDRESS
+            rec.isp = _INVALID_IP_ADDRESS
+            rec.proxy_type = _INVALID_IP_ADDRESS
+            rec.domain = _INVALID_IP_ADDRESS
+            rec.usage_type = _INVALID_IP_ADDRESS
+            rec.asn = _INVALID_IP_ADDRESS
+            rec.as_name = _INVALID_IP_ADDRESS
+            rec.last_seen = _INVALID_IP_ADDRESS
+            rec.threat = _INVALID_IP_ADDRESS
+            rec.provider = _INVALID_IP_ADDRESS
+            return rec
+        elif ipv == 4:
             # ipnum = struct.unpack('!L', socket.inet_pton(socket.AF_INET, ip))[0]
             if (ipnum == MAX_IPV4_RANGE):
                 ipno = ipnum - 1
@@ -541,6 +590,8 @@ class IP2Proxy(object):
             rec.asn = _NO_IP
             rec.as_name = _NO_IP
             rec.last_seen = _NO_IP
+            rec.threat = _NO_IP
+            rec.provider = _NO_IP
             return rec
         else:
             rec = IP2ProxyRecord()
@@ -555,6 +606,8 @@ class IP2Proxy(object):
             rec.asn = _INVALID_IP_ADDRESS
             rec.as_name = _INVALID_IP_ADDRESS
             rec.last_seen = _INVALID_IP_ADDRESS
+            rec.threat = _INVALID_IP_ADDRESS
+            rec.provider = _INVALID_IP_ADDRESS
             return rec
 
         while low <= high:
