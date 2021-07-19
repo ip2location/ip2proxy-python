@@ -53,7 +53,7 @@ if not hasattr(socket, 'inet_pton'):
         return out_addr_p.raw
     socket.inet_pton = inet_pton
 
-_VERSION = '3.2.0' 
+_VERSION = '3.2.1' 
 _NO_IP = 'MISSING IP ADDRESS'
 _FIELD_NOT_SUPPORTED = 'NOT SUPPORTED'
 _INVALID_IP_ADDRESS  = 'INVALID IP ADDRESS'
@@ -529,8 +529,8 @@ class IP2Proxy(object):
         low = 0
         ipv = self._parse_addr(ip)[0] 
         ipnum = self._parse_addr(ip)[1]
-        print (ipv)
-        print (ipnum)
+        # print (ipv)
+        # print (ipnum)
         if (ipv == 0):
             rec = IP2ProxyRecord()
             rec.country_short = _INVALID_IP_ADDRESS
