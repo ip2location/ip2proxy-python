@@ -529,8 +529,8 @@ class IP2Proxy(object):
         low = 0
         ipv = self._parse_addr(ip)[0] 
         ipnum = self._parse_addr(ip)[1]
-        print (ipv)
-        print (ipnum)
+        # print (ipv)
+        # print (ipnum)
         if (ipv == 0):
             rec = IP2ProxyRecord()
             rec.country_short = _INVALID_IP_ADDRESS
