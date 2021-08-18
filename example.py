@@ -46,3 +46,10 @@ print ('Provider: ' + record['provider'])
 
 # close IP2Proxy BIN database
 db.close()
+
+# Web Service
+ws = IP2Proxy.IP2ProxyWebService("demo","PX11",True)
+rec = ws.lookup("8.8.8.8")
+print (rec)
+print ("\n")
+print ("Credit Remaining: {}\n".format(ws.getcredit()))

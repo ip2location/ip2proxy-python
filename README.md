@@ -35,7 +35,18 @@ Below are the methods supported in this library.
 |get_threat|Return the threat types reported to proxy's IP address or domain name.|
 |get_provider|Returns the VPN service provider name if available.|
 
+## Web Service
+
+Below is the description of the functions available in the **Web Service** lookup.
+
+| Method Name | Description                                                  |
+| ----------- | ------------------------------------------------------------ |
+| Constructor | Expect 3 input parameters:IP2Proxy API Key.Package (PX1 - PX10)Use HTTPS or HTTP |
+| lookup      | Return the proxy information in array.<ul><li>countryCode</li><li>countryName</li><li>regionName</li><li>cityName</li><li>isp</li><li>domain</li><li>usageType</li><li>asn</li><li>as</li><li>lastSeen</li><li>threat</li><li>proxyType</li><li>isProxy</li></ul> |
+| getcredit   | Return remaining credit of the web service account.          |
+
 ## Requirements
+
 1. Python 2.2 and above
 
 ## Installation
@@ -100,6 +111,13 @@ print ('Provider: ' + record['provider'])
 
 # close IP2Proxy BIN database
 db.close()
+
+# Web Service
+ws = IP2Proxy.IP2ProxyWebService("demo","PX11",True)
+rec = ws.lookup("8.8.8.8")
+print (rec)
+print ("\n")
+print ("Credit Remaining: {}\n".format(ws.getcredit()))
 ```
 
 ## Proxy Type

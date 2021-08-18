@@ -19,13 +19,45 @@ import struct
 import socket
 import ipaddress
 import os
+import json
+import re
 
 if sys.version < '3':
+    import urllib, httplib
+    def urlencode(x):
+        return urllib.urlencode(x)
+    def httprequest(x, usessl):
+        try:
+            # conn = httplib.HTTPConnection("api.ip2proxy.com")
+            if (usessl is True):
+                conn = httplib.HTTPSConnection("api.ip2proxy.com")
+            else:
+                conn = httplib.HTTPConnection("api.ip2proxy.com")
+            conn.request("GET", "/?" + x)
+            res = conn.getresponse()
+            return json.loads(res.read())
+        except:
+            return None
     def u(x):
         return x.decode('utf-8')
     def b(x):
         return str(x)
 else:
+    import urllib.parse, http.client
+    def urlencode(x):
+        return urllib.parse.urlencode(x)
+    def httprequest(x, usessl):
+        try:
+            # conn = http.client.HTTPConnection("api.ip2proxy.com")
+            if (usessl is True):
+                conn = http.client.HTTPSConnection("api.ip2proxy.com")
+            else:
+                conn = http.client.HTTPConnection("api.ip2proxy.com")
+            conn.request("GET", "/?" + x)
+            res = conn.getresponse()
+            return json.loads(res.read())
+        except:
+            return None
     def u(x):
         if isinstance(x, bytes):
             return x.decode()
@@ -53,7 +85,7 @@ if not hasattr(socket, 'inet_pton'):
         return out_addr_p.raw
     socket.inet_pton = inet_pton
 
-_VERSION = '3.2.1' 
+_VERSION = '3.3.0' 
 _NO_IP = 'MISSING IP ADDRESS'
 _FIELD_NOT_SUPPORTED = 'NOT SUPPORTED'
 _INVALID_IP_ADDRESS  = 'INVALID IP ADDRESS'
@@ -623,3 +655,37 @@ class IP2Proxy(object):
                     high = mid - 1
                 else:
                     low = mid + 1
+
+class IP2ProxyWebService(object):
+    ''' IP2Proxy web service '''
+    def __init__(self,apikey,package,usessl=True):
+        if ((re.match(r"^[0-9A-Z]{10}$", apikey) == None) and (apikey != 'demo')):
+            raise ValueError("Please provide a valid IP2Proxy web service API key.")
+        if (re.match(r"^PX[0-9]+$", package) == None):
+            package = 'PX1'
+        self.apikey = apikey
+        self.package = package
+        self.usessl = usessl
+
+    def lookup(self,ip):
+        '''This function will look the given IP address up in IP2Proxy web service.'''
+        parameters = urlencode((("ip", ip), ("key", self.apikey), ("package", self.package)))
+        response = httprequest(parameters, self.usessl)
+        if (response == None):
+            return False
+        if (('response' in response) and (response['response'] != "OK")):
+            raise IP2ProxyAPIError(response['response'])
+        return response
+
+    def getcredit(self):
+        '''Get the remaing credit in your IP2Proxy web service account.'''
+        parameters = urlencode((("key", self.apikey), ("check", True)))
+        response = httprequest(parameters, self.usessl)
+        if (response == None):
+            return 0
+        if ('response' in response is False):
+            return 0
+        return response['response']
+
+class IP2ProxyAPIError(Exception):
+    """Raise for IP2Proxy API Error Message"""
