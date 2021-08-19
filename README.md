@@ -41,7 +41,7 @@ Below is the description of the functions available in the **Web Service** looku
 
 | Method Name | Description                                                  |
 | ----------- | ------------------------------------------------------------ |
-| Constructor | Expect 3 input parameters:IP2Proxy API Key.Package (PX1 - PX10)Use HTTPS or HTTP |
+| Constructor | Expect 3 input parameters:<ul><li>IP2Proxy API Key.</li><li>Package (PX1 - PX11)</li><li>Use HTTPS or HTTP</li></ul> |
 | lookup      | Return the proxy information in array.<ul><li>countryCode</li><li>countryName</li><li>regionName</li><li>cityName</li><li>isp</li><li>domain</li><li>usageType</li><li>asn</li><li>as</li><li>lastSeen</li><li>threat</li><li>proxyType</li><li>isProxy</li></ul> |
 | getcredit   | Return remaining credit of the web service account.          |
 
