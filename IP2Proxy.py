@@ -155,20 +155,22 @@ class IP2Proxy(object):
             raise ValueError("The database file does not seem to exist.")
 
         self._f = open(filename, 'rb')
-        self._dbtype = struct.unpack('B', self._f.read(1))[0]
-        self._dbcolumn = struct.unpack('B', self._f.read(1))[0]
-        self._dbyear = 2000 + struct.unpack('B', self._f.read(1))[0]
-        self._dbmonth = struct.unpack('B', self._f.read(1))[0]
-        self._dbday = struct.unpack('B', self._f.read(1))[0]
-        self._ipv4dbcount = struct.unpack('<I', self._f.read(4))[0]
-        self._ipv4dbaddr = struct.unpack('<I', self._f.read(4))[0]
-        self._ipv6dbcount = struct.unpack('<I', self._f.read(4))[0]
-        self._ipv6dbaddr = struct.unpack('<I', self._f.read(4))[0]
-        self._ipv4indexbaseaddr = struct.unpack('<I', self._f.read(4))[0]
-        self._ipv6indexbaseaddr = struct.unpack('<I', self._f.read(4))[0]
-        self._productcode = struct.unpack('B', self._f.read(1))[0]
-        self._licensecode = struct.unpack('B', self._f.read(1))[0]
-        self._databasesize = struct.unpack('B', self._f.read(1))[0]
+        self._f.seek(0)
+        header_row = self._f.read(32)
+        self._dbtype = struct.unpack('B', header_row[0:1])[0]
+        self._dbcolumn = struct.unpack('B', header_row[1:2])[0]
+        self._dbyear = struct.unpack('B', header_row[2:3])[0]
+        self._dbmonth = struct.unpack('B', header_row[3:4])[0]
+        self._dbday = struct.unpack('B', header_row[4:5])[0]
+        self._ipv4dbcount = struct.unpack('<I', header_row[5:9])[0]
+        self._ipv4dbaddr = struct.unpack('<I', header_row[9:13])[0]
+        self._ipv6dbcount = struct.unpack('<I', header_row[13:17])[0]
+        self._ipv6dbaddr = struct.unpack('<I', header_row[17:21])[0]
+        self._ipv4indexbaseaddr = struct.unpack('<I', header_row[21:25])[0]
+        self._ipv6indexbaseaddr = struct.unpack('<I', header_row[25:29])[0]
+        self._productcode = struct.unpack('B', header_row[29:30])[0]
+        self._licensecode = struct.unpack('B', header_row[30:31])[0]
+        self._databasesize = struct.unpack('B', header_row[31:32])[0]
         if (self._productcode != 2) :
             if (self._dbyear > 20 and self._productcode != 0) :
                 self._f.close()
@@ -248,10 +250,6 @@ class IP2Proxy(object):
         ''' Determine whether is a proxy '''
         try:
             rec = self._get_record(ip)
-            # if self._dbtype == 1:
-                # is_proxy = 0 if (rec.country_short == '-') else ( 2 if ((rec.proxy_type == 'DCH') | (rec.proxy_type == 'SES')) else 1)
-            # else:
-                # is_proxy = 0 if (rec.proxy_type == '-') else ( 2 if ((rec.proxy_type == 'DCH') | (rec.proxy_type == 'SES')) else 1)
             if rec.country_short != _INVALID_IP_ADDRESS:
                 if self._dbtype == 1:
                     is_proxy = 0 if (rec.country_short == '-') else ( 2 if ((rec.proxy_type == 'DCH') | (rec.proxy_type == 'SES')) else 1)
@@ -343,11 +341,6 @@ class IP2Proxy(object):
             last_seen = rec.last_seen
             threat = rec.threat
             provider = rec.provider
-
-            # if self._dbtype == 1:
-                # is_proxy = 0 if (rec.country_short == '-') else ( 2 if ((rec.proxy_type == 'DCH') | (rec.proxy_type == 'SES')) else 1)
-            # else:
-                # is_proxy = 0 if (rec.proxy_type == '-') else ( 2 if ((rec.proxy_type == 'DCH') | (rec.proxy_type == 'SES')) else 1)
             if rec.country_short != _INVALID_IP_ADDRESS:
                 if self._dbtype == 1:
                     is_proxy = 0 if (rec.country_short == '-') else ( 2 if ((rec.proxy_type == 'DCH') | (rec.proxy_type == 'SES')) else 1)
@@ -356,8 +349,6 @@ class IP2Proxy(object):
             else:
                 is_proxy = -1
         except:
-        # except Exception as ex:
-            # print(ex)
             country_short = _INVALID_IP_ADDRESS
             country_long = _INVALID_IP_ADDRESS
             region = _INVALID_IP_ADDRESS
@@ -392,9 +383,10 @@ class IP2Proxy(object):
 
     def _reads(self, offset):
         self._f.seek(offset - 1)
-        n = struct.unpack('B', self._f.read(1))[0]
-        return u(self._f.read(n))
-        # return self._f.read(n).decode('iso-8859-1').encode('utf-8')
+        data = self._f.read(257)
+        char_count = struct.unpack('B', data[0:1])[0]
+        string = data[1:char_count+1]
+        return u(string.decode('iso-8859-1').encode('utf-8'))
 
     def _readi(self, offset):
         self._f.seek(offset - 1)
@@ -518,7 +510,6 @@ class IP2Proxy(object):
         ipv = 0
         ipnum = -1
         ipvalidateresult = self._validate_addr(addr)
-        # print ("IP " + str(addr) + " is " + str(ipvalidateresult) + ".")
         if (ipvalidateresult == False):
             return ipv, ipnum
         try:
@@ -557,6 +548,29 @@ class IP2Proxy(object):
             ipv = 4
         return ipv, ipnum
 
+    def calc_off(self, off, baseaddr, what, mid):
+        # return baseaddr + mid * (self._dbcolumn * 4 + off) + off + 4 * (what[self._dbtype]-1)
+        return baseaddr + mid * (self._dbcolumn * 4 + off) + off + 4 * (what-1)
+
+    def read32x2(self, offset):
+        self._f.seek(offset - 1)
+        data = self._f.read(8)
+        return struct.unpack('<L', data[0:4])[0], struct.unpack('<L', data[4:8])[0]
+
+    def readRow32(self, offset):
+        data_length = self._dbcolumn * 4 + 4
+        self._f.seek(offset - 1)
+        raw_data = self._f.read(data_length)
+        ip_from = struct.unpack('<L', raw_data[0:4])[0]
+        ip_to = struct.unpack('<L', raw_data[data_length-4:data_length])[0]
+        return (ip_from, ip_to)
+
+    def readRow128(self, offset):
+        data_length = self._dbcolumn * 4 + 12 + 16
+        self._f.seek(offset - 1)
+        raw_data = self._f.read(data_length)
+        return ((struct.unpack('<L', raw_data[12:16])[0] << 96) | (struct.unpack('<L', raw_data[8:12])[0] << 64) | (struct.unpack('<L', raw_data[4:8])[0] << 32) | struct.unpack('<L', raw_data[0:4])[0], (struct.unpack('<L', raw_data[data_length-4:data_length])[0] << 96) | (struct.unpack('<L', raw_data[data_length-8:data_length-4])[0] << 64) | (struct.unpack('<L', raw_data[data_length-12:data_length-8])[0] << 32) | struct.unpack('<L', raw_data[data_length-16:data_length-12])[0])
+
     def _get_record(self, ip):
         low = 0
         ipv = self._parse_addr(ip)[0] 
@@ -590,8 +604,7 @@ class IP2Proxy(object):
             high = self._ipv4dbcount
             if self._ipv4indexbaseaddr > 0:
                 indexpos = ((ipno >> 16) << 3) + self._ipv4indexbaseaddr
-                low = self._readi(indexpos)
-                high = self._readi(indexpos + 4)
+                low,high = self.read32x2(indexpos)
 
         elif ipv == 6:
             # a, b = struct.unpack('!QQ', socket.inet_pton(socket.AF_INET6, ip))
@@ -605,8 +618,7 @@ class IP2Proxy(object):
             high = self._ipv6dbcount
             if self._ipv6indexbaseaddr > 0:
                 indexpos = ((ipno >> 112) << 3) + self._ipv6indexbaseaddr
-                low = self._readi(indexpos)
-                high = self._readi(indexpos + 4)
+                low,high = self.read32x2(indexpos)
                 
         # elif (ipnum == '' or ipv == ):
         elif (ipnum == ''):
@@ -645,8 +657,10 @@ class IP2Proxy(object):
         while low <= high:
             # mid = int((low + high) / 2)
             mid = int((low + high) >> 1)
-            ipfrom = self._readip(baseaddr + (mid) * (self._dbcolumn * 4 + off), ipv)
-            ipto = self._readip(baseaddr + (mid + 1) * (self._dbcolumn * 4 + off), ipv)
+            if ipv == 4:
+                ipfrom, ipto = self.readRow32(baseaddr + mid * self._dbcolumn * 4 )
+            elif ipv == 6:
+                ipfrom, ipto = self.readRow128(baseaddr + mid * ((self._dbcolumn * 4) + 12) )
 
             if ipfrom <= ipno < ipto:
                 return self._read_record(mid, ipv)

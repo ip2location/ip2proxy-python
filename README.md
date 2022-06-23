@@ -21,7 +21,7 @@ Below are the methods supported in this library.
 |get_database_version|Get the database version.|
 |is_proxy|Check whether if an IP address was a proxy. Returned value:<ul><li>-1 : errors</li><li>0 : not a proxy</li><li>1 : a proxy</li><li>2 : a data center IP address</li></ul>|
 |get_all|Return the proxy information in array.|
-|get_proxy_type|Return the proxy type. Please visit <a href="https://www.ip2location.com/database/px10-ip-proxytype-country-region-city-isp-domain-usagetype-asn-lastseen-threat-residential" target="_blank">IP2Location</a> for the list of proxy types supported|
+|get_proxy_type|Return the proxy type. Please visit <a href="https://www.ip2location.com/database/px11-ip-proxytype-country-region-city-isp-domain-usagetype-asn-lastseen-threat-residential" target="_blank">IP2Location</a> for the list of proxy types supported|
 |get_country_short|Return the ISO3166-1 country code (2-digits) of the proxy.|
 |get_country_long|Return the ISO3166-1 country name of the proxy.|
 |get_region|Return the ISO3166-2 region name of the proxy. Please visit <a href="https://www.ip2location.com/free/iso3166-2" target="_blank">ISO3166-2 Subdivision Code</a> for the information of ISO3166-2 supported|
