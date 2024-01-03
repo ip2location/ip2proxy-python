@@ -1,4 +1,4 @@
-# Copyright (C) 2002-2020 IP2Location.com
+# Copyright (C) 2002-2024 IP2Location.com
 # All Rights Reserved
 #
 # This library is free software: you can redistribute it and/or
