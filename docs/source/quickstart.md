@@ -10,10 +10,20 @@ This library requires IP2Proxy BIN database to function. You may download the BI
 
 ## Installation
 
+### PyPI Installation
+
 You can install IP2Proxy Python library from PyPI by using this command:
 
 ```bash
 pip install IP2Proxy
+```
+
+### Arch Linux
+
+For Arch Linux user, you can install the module using the following command:
+```Bash
+git clone https://aur.archlinux.org/ip2proxy-python.git && cd ip2proxy-python
+makepkg -si
 ```
 
 ## Sample Codes
