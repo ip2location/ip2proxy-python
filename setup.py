@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="IP2Proxy",
-    version="3.4.0", 
+    version="3.4.1", 
     author="IP2Location",
     author_email="support@ip2location.com",
     description="Python API for IP2Proxy database. It can be used to query an IP address if it was being used as open proxy, web proxy, VPN anonymizer and TOR exits.",
@@ -27,6 +27,7 @@ setuptools.setup(
 		"Programming Language :: Python :: 3.9",
 		"Programming Language :: Python :: 3.10",
 		"Programming Language :: Python :: 3.11",
+		"Programming Language :: Python :: 3.12",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ),
