@@ -56,4 +56,5 @@ Retrieve geolocation information for an IP address.
 | threat         |     Security threat reported. |
 | proxy_type      |     Type of proxy. |
 | provider       |     Name of VPN provider if available. |
+| fraud_score       |     Potential risk score (0 - 99) associated with IP address. |
 ```
