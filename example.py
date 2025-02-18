@@ -25,6 +25,7 @@ print ('AS Name: ' + db.get_as_name("4.0.0.47"))
 print ('Last Seen: ' + db.get_last_seen("4.0.0.47"))
 print ('Threat: ' + db.get_threat("4.0.0.47"))
 print ('Provider: ' + db.get_provider("4.0.0.47"))
+print ('Fraud Score: ' + db.get_fraud_score("4.0.0.47"))
 
 # single function to get all proxy data returned in array
 record = db.get_all("4.0.0.47")
@@ -43,6 +44,7 @@ print ('AS Name: ' + record['as_name'])
 print ('Last Seen: ' + record['last_seen'])
 print ('Threat: ' + record['threat'])
 print ('Provider: ' + record['provider'])
+print ('Fraud Score: ' + record['fraud_score'])
 
 # close IP2Proxy BIN database
 db.close()

@@ -85,7 +85,7 @@ if not hasattr(socket, 'inet_pton'):
         return out_addr_p.raw
     socket.inet_pton = inet_pton
 
-_VERSION = '3.3.0' 
+_VERSION = '3.5.0' 
 _NO_IP = 'MISSING IP ADDRESS'
 _FIELD_NOT_SUPPORTED = 'NOT SUPPORTED'
 _INVALID_IP_ADDRESS  = 'INVALID IP ADDRESS'
@@ -108,6 +108,7 @@ class IP2ProxyRecord:
     domain = _FIELD_NOT_SUPPORTED
     threat = _FIELD_NOT_SUPPORTED
     provider = _FIELD_NOT_SUPPORTED
+    fraud_score = _FIELD_NOT_SUPPORTED
 
     def __str__(self):
         return str(self.__dict__)
@@ -115,18 +116,19 @@ class IP2ProxyRecord:
     def __repr__(self):
         return repr(self.__dict__)
 
-_COUNTRY_POSITION             = (0,  2,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3)
-_REGION_POSITION              = (0,  0,  0,  4,  4,  4,  4,  4,  4,  4,  4,  4)
-_CITY_POSITION                = (0,  0,  0,  5,  5,  5,  5,  5,  5,  5,  5,  5)
-_ISP_POSITION                 = (0,  0,  0,  0,  6,  6,  6,  6,  6,  6,  6,  6)
-_PROXYTYPE_POSITION           = (0,  0,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2)
-_DOMAIN_POSITION              = (0,  0,  0,  0,  0,  7,  7,  7,  7,  7,  7,  7)
-_USAGETYPE_POSITION           = (0,  0,  0,  0,  0,  0,  8,  8,  8,  8,  8,  8)
-_ASN_POSITION                 = (0,  0,  0,  0,  0,  0,  0,  9,  9,  9,  9,  9)
-_AS_POSITION                  = (0,  0,  0,  0,  0,  0,  0, 10, 10, 10, 10, 10)
-_LASTSEEN_POSITION            = (0,  0,  0,  0,  0,  0,  0,  0, 11, 11, 11, 11)
-_THREAT_POSITION              = (0,  0,  0,  0,  0,  0,  0,  0,  0, 12, 12, 12)
-_PROVIDER_POSITION            = (0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 13)
+_COUNTRY_POSITION             = (0,  2,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3)
+_REGION_POSITION              = (0,  0,  0,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4)
+_CITY_POSITION                = (0,  0,  0,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5)
+_ISP_POSITION                 = (0,  0,  0,  0,  6,  6,  6,  6,  6,  6,  6,  6,  6)
+_PROXYTYPE_POSITION           = (0,  0,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2)
+_DOMAIN_POSITION              = (0,  0,  0,  0,  0,  7,  7,  7,  7,  7,  7,  7,  7)
+_USAGETYPE_POSITION           = (0,  0,  0,  0,  0,  0,  8,  8,  8,  8,  8,  8,  8)
+_ASN_POSITION                 = (0,  0,  0,  0,  0,  0,  0,  9,  9,  9,  9,  9,  9)
+_AS_POSITION                  = (0,  0,  0,  0,  0,  0,  0, 10, 10, 10, 10, 10, 10)
+_LASTSEEN_POSITION            = (0,  0,  0,  0,  0,  0,  0,  0, 11, 11, 11, 11, 11)
+_THREAT_POSITION              = (0,  0,  0,  0,  0,  0,  0,  0,  0, 12, 12, 12, 12)
+_PROVIDER_POSITION            = (0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 13, 13)
+_FRAUD_SCORE_POSITION         = (0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 14)
 
 class IP2Proxy(object):
     ''' IP2Proxy database '''
@@ -324,6 +326,15 @@ class IP2Proxy(object):
             provider = _INVALID_IP_ADDRESS
         return provider
 
+    def get_fraud_score(self, ip):
+        ''' Get fraud_score'''
+        try:
+            rec = self._get_record(ip)
+            fraud_score = rec.fraud_score
+        except:
+            fraud_score = _INVALID_IP_ADDRESS
+        return fraud_score
+
     def get_all(self, ip):
         ''' Get the whole record with all fields read from the file '''
         try:
@@ -341,6 +352,7 @@ class IP2Proxy(object):
             last_seen = rec.last_seen
             threat = rec.threat
             provider = rec.provider
+            fraud_score = rec.fraud_score
             if rec.country_short != _INVALID_IP_ADDRESS:
                 if self._dbtype == 1:
                     is_proxy = 0 if (rec.country_short == '-') else ( 2 if ((rec.proxy_type == 'DCH') | (rec.proxy_type == 'SES')) else 1)
@@ -363,6 +375,7 @@ class IP2Proxy(object):
             last_seen = _INVALID_IP_ADDRESS
             threat = _INVALID_IP_ADDRESS
             provider = _INVALID_IP_ADDRESS
+            fraud_score = _INVALID_IP_ADDRESS
 
         results = {}
         results['is_proxy'] = is_proxy
@@ -379,6 +392,7 @@ class IP2Proxy(object):
         results['last_seen'] = last_seen
         results['threat'] = threat
         results['provider'] = provider
+        results['fraud_score'] = fraud_score
         return results
 
     def _reads(self, offset):
@@ -482,6 +496,11 @@ class IP2Proxy(object):
             rec.provider = self._reads(self._readi(calc_off(_PROVIDER_POSITION, mid)) + 1)
         elif _PROVIDER_POSITION[self._dbtype] == 0:
             rec.provider = _FIELD_NOT_SUPPORTED
+
+        if _FRAUD_SCORE_POSITION[self._dbtype] != 0:
+            rec.fraud_score = self._reads(self._readi(calc_off(_FRAUD_SCORE_POSITION, mid)) + 1)
+        elif _FRAUD_SCORE_POSITION[self._dbtype] == 0:
+            rec.fraud_score = _FIELD_NOT_SUPPORTED
 
         return rec
 
@@ -592,6 +611,7 @@ class IP2Proxy(object):
             rec.last_seen = _INVALID_IP_ADDRESS
             rec.threat = _INVALID_IP_ADDRESS
             rec.provider = _INVALID_IP_ADDRESS
+            rec.fraud_score = _INVALID_IP_ADDRESS
             return rec
         elif ipv == 4:
             # ipnum = struct.unpack('!L', socket.inet_pton(socket.AF_INET, ip))[0]
@@ -636,6 +656,7 @@ class IP2Proxy(object):
             rec.last_seen = _NO_IP
             rec.threat = _NO_IP
             rec.provider = _NO_IP
+            rec.fraud_score = _NO_IP
             return rec
         else:
             rec = IP2ProxyRecord()
@@ -652,6 +673,7 @@ class IP2Proxy(object):
             rec.last_seen = _INVALID_IP_ADDRESS
             rec.threat = _INVALID_IP_ADDRESS
             rec.provider = _INVALID_IP_ADDRESS
+            rec.fraud_score = _INVALID_IP_ADDRESS
             return rec
 
         while low <= high:
