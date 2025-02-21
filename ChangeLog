@@ -1,3 +1,6 @@
+3.5.1	2025-02-21
+	* Tested with Python 3.13.
+
 3.5.0	2025-02-18
 	* Added new field "fraud_score" to support PX12 database.
 
