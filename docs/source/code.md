@@ -43,6 +43,7 @@ Retrieve geolocation information for an IP address.
 
 | Field Name       | Description                                                  |
 | ---------------- | ------------------------------------------------------------ |
+| is_proxy    |     Determine whether if an IP address was a proxy or not. Returns 0 is not proxy, 1 if proxy, and 2 if it's data center IP |
 | country_short    |     Two-character country code based on ISO 3166. |
 | country_long    |     Country name based on ISO 3166. |
 | region     |     Region or state name. |

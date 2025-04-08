@@ -10,7 +10,7 @@ This library allows user to query an IP address if it was being used as VPN serv
 * Commercial IP2Proxy BIN Data: [https://www.ip2location.com/proxy-database](https://www.ip2location.com/proxy-database)
 
 For more details, please visit:
-[https://www.ip2location.com/ip2proxy/developers/python](https://www.ip2location.com/ip2proxy/developers/python)
+[https://www.ip2location.com/documentation/ip2proxy-libraries/python](https://www.ip2location.com/documentation/ip2proxy-libraries/python)
 
 ## Developer Documentation
 To learn more about installation, usage, and code examples, please visit the developer documentation at [https://ip2proxy-python.readthedocs.io/en/latest/index.html.](https://ip2proxy-python.readthedocs.io/en/latest/index.html)
