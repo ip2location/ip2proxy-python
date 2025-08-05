@@ -48,11 +48,12 @@ To learn more about installation, usage, and code examples, please visit the dev
 
 ## Threat Type
 
-| Threat Type | Description                |
-| ----------- | -------------------------- |
-| SPAM        | Spammer                    |
-| SCANNER     | Security Scanner or Attack |
-| BOTNET      | Spyware or Malware         |
+| Threat Type | Description                                                    |
+| ----------- | -------------------------------------------------------------- |
+| SPAM        | Email and forum spammers                                       |
+| SCANNER     | Security Scanner or Attack                                     |
+| BOTNET      | Spyware or Malware                                             |
+| BOGON       | Unassigned or illegitimate IP addresses announced via BGP      |
 
 
 
