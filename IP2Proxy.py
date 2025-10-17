@@ -174,7 +174,7 @@ class IP2Proxy(object):
         self._licensecode = struct.unpack('B', header_row[30:31])[0]
         self._databasesize = struct.unpack('B', header_row[31:32])[0]
         if (self._productcode != 2) :
-            if (self._dbyear > 20 and self._productcode != 0) :
+            if (self._dbyear <= 20 and self._productcode == 0) :
                 self._f.close()
                 del self._f
                 raise ValueError("Incorrect IP2Location BIN file format. Please make sure that you are using the latest IP2Location BIN file.")
