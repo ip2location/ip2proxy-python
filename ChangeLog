@@ -1,3 +1,6 @@
+3.5.2	2025-10-17
+	* Fixed the database checking logic. (#9).
+
 3.5.1	2025-02-21
 	* Tested with Python 3.13.
 
