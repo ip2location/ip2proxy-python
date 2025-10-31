@@ -173,11 +173,13 @@ class IP2Proxy(object):
         self._productcode = struct.unpack('B', header_row[29:30])[0]
         self._licensecode = struct.unpack('B', header_row[30:31])[0]
         self._databasesize = struct.unpack('B', header_row[31:32])[0]
-        if (self._productcode != 2) :
-            if (self._dbyear <= 20 and self._productcode == 0) :
-                self._f.close()
-                del self._f
-                raise ValueError("Incorrect IP2Location BIN file format. Please make sure that you are using the latest IP2Location BIN file.")
+        
+        # check if is correct BIN (should be 2 for IP2Proxy BIN file), also checking for zipped file (PK being the first 2 chars)
+        # only BINs from Jan 2021 onwards have _dbcolumn and _dbtype
+        if ((self._productcode != 2 and self._dbyear >= 21) or (self._dbtype == 80 and self._dbcolumn == 75)):
+            self._f.close()
+            del self._f
+            raise ValueError("Incorrect IP2Proxy BIN file format. Please make sure that you are using the latest IP2Proxy BIN file.")
 
     def close(self):
         if hasattr(self, '_f'):

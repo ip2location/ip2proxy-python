@@ -1,3 +1,6 @@
+3.5.2	2025-10-31
+	* Added checking logic for zip file.
+	
 3.5.2	2025-10-17
 	* Fixed the database checking logic. (#9).
 
